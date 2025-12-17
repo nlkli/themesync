@@ -1,0 +1,11 @@
+[package]
+name = "themesync"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.9"
+rand = "0.9"
+strsim = "0.11"
