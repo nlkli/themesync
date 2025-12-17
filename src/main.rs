@@ -121,6 +121,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             println!("{}", theme.name.clone().unwrap_or_default());
             theme
+        } else if args.dark_rand {
+            let theme = collection::rand_dark();
+            println!("{}", theme.name.clone().unwrap_or_default());
+            theme
+        } else if args.light_rand {
+            let theme = collection::rand_light();
+            println!("{}", theme.name.clone().unwrap_or_default());
+            theme
         } else if !args.rand && args.query.is_some() {
             collection::search(&unsafe { args.query.unwrap_unchecked() })
         } else {
