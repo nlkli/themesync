@@ -1,5 +1,5 @@
-use std::{fmt::Write, io::BufRead};
 use clap::Parser;
+use std::{fmt::Write, io::BufRead};
 mod collection;
 mod color;
 mod models;
@@ -66,7 +66,9 @@ fn write_theme_to_nvim_config(theme: &mut models::Theme) -> Result<(), Box<dyn s
 fn write_theme_to_alacritty_config(
     theme: &mut models::Theme,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let full_config_path = std::env::home_dir().unwrap().join(ALACRITTY_CONFIG_FILE_PATH);
+    let full_config_path = std::env::home_dir()
+        .unwrap()
+        .join(ALACRITTY_CONFIG_FILE_PATH);
     let buff = std::fs::read_to_string(&full_config_path)?;
     let mut config = toml::from_str::<models::alacritty::Config>(&buff)?;
     config.replace_colors_from_theme(theme.get_colors());
@@ -78,7 +80,7 @@ fn write_theme_to_alacritty_config(
 /// themesymc
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args { 
+struct Args {
     /// Set random theme
     #[arg(short, long)]
     rand: bool,
@@ -112,23 +114,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut theme = {
         if args.rand {
-            let theme = if args.dark_rand {
+            if args.dark_rand {
                 collection::rand_dark()
             } else if args.light_rand {
                 collection::rand_light()
             } else {
                 collection::rand()
-            };
-            println!("{}", theme.name.clone().unwrap_or_default());
-            theme
+            }
         } else if args.dark_rand {
-            let theme = collection::rand_dark();
-            println!("{}", theme.name.clone().unwrap_or_default());
-            theme
+            collection::rand_dark()
         } else if args.light_rand {
-            let theme = collection::rand_light();
-            println!("{}", theme.name.clone().unwrap_or_default());
-            theme
+            collection::rand_light()
         } else if !args.rand && args.query.is_some() {
             collection::search(&unsafe { args.query.unwrap_unchecked() })
         } else {
@@ -141,6 +137,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     write_theme_to_nvim_config(&mut theme)?;
     write_theme_to_alacritty_config(&mut theme)?;
+
+    println!("{}", theme.name.clone().unwrap_or_default());
 
     Ok(())
 }

@@ -110,7 +110,7 @@ local function themeSyncExe()
     );
 
     let spec = format!(
-r###"
+        r###"
     local spec = {{}}
     spec.diag = {{
         error = P.red.base,
@@ -169,10 +169,10 @@ r###"
         types = "NONE",
         variables = "NONE",
     }}
-"###, 
+"###,
         // variable_color = if theme.is_light() {"black"} else {"white"},
         variable_color = c.variable.as_ref().unwrap(),
-        shade = if is_light {"dim"} else {"bright"},
+        shade = if is_light { "dim" } else { "bright" },
     );
     const TAIL: &str = r###"
     for group, opts in pairs({
