@@ -222,7 +222,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     theme.prepare()?;
-    theme.validation()?;
+    // theme.validation()?;
 
     write_theme_to_nvim_config(&mut theme)?;
     write_theme_to_alacritty_config(&mut theme)?;
