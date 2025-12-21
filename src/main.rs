@@ -4,7 +4,7 @@ mod models;
 mod templ;
 use clap::Parser;
 use rand::seq::IndexedRandom;
-use std::{sync::Once, path::{Path, PathBuf}, fmt::Write, io::BufRead, process::exit};
+use std::{sync::Once, path::PathBuf, fmt::Write, io::BufRead, process::exit};
 use strsim::levenshtein;
 
 static INIT: Once = Once::new();
@@ -30,8 +30,12 @@ fn init(cli: Option<&Cli>) {
     // TODO: cli
     unsafe {
         INIT.call_once(|| {
+            if !supports_truecolor() {
+                println!("Warning: Your terminal does not fully support truecolor");
+            }
             let _cli = cli.expect("shoud be some");
             let home_dir = home_dir();
+
             NVIM_CONFIG_PATH = Some(home_dir.join(DEFAULT_NVIM_CONFIG_PATH));
             ALACRITTY_CONFIG_PATH = Some(home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH));
         })
@@ -40,13 +44,15 @@ fn init(cli: Option<&Cli>) {
 
 fn get_nvim_config_path() -> &'static PathBuf {
     unsafe {
-        NVIM_CONFIG_PATH.as_ref().expect("shoud be init")
+        let ptr: *const Option<PathBuf> = &raw const NVIM_CONFIG_PATH;
+        (&*ptr).as_ref().unwrap()
     }
 }
 
 fn get_alacritty_config_path() -> &'static PathBuf {
     unsafe {
-        ALACRITTY_CONFIG_PATH.as_ref().expect("shoud be init")
+        let ptr: *const Option<PathBuf> = &raw const ALACRITTY_CONFIG_PATH;
+        (&*ptr).as_ref().unwrap()
     }
 }
 
@@ -128,7 +134,7 @@ fn list_nerd_fonts() -> Result<Vec<String>, Box<dyn std::error::Error>> {
 
     #[cfg(target_os = "macos")]
     {
-        let path = home_path_join("Library/Fonts");
+        let path = home_dir().join("Library/Fonts");
         for entry in std::fs::read_dir(path)? {
             let path = entry?.path();
             if !path.is_file() {
@@ -173,10 +179,9 @@ fn set_alacritty_font(query: &str) -> Result<(), Box<dyn std::error::Error>> {
         .min_by_key(|v| levenshtein(&v.to_lowercase(), &query))
         .ok_or_else(|| format!("No matching font found for query '{}'", query))?;
 
-    let path = home_path_join(DEFAULT_ALACRITTY_CONFIG_PATH);
-    let mut config = load_alacritty_config(&path)?;
+    let mut config = load_alacritty_config()?;
     config.set_font_family(font);
-    save_alacritty_config(path, &config)?;
+    save_alacritty_config(&config)?;
 
     Ok(())
 }
@@ -234,14 +239,20 @@ struct Cli {
     /// Rust fmt format
     #[arg(long)]
     show_fmt: bool,
+
+    // /// Alacritty config path
+    // #[arg(short, long)]
+    // alacritty_path: Option<String>,
+
+    // /// Neovim config path
+    // #[arg(short, long)]
+    // nvim_path: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut is_error = false;
-    if !supports_truecolor() {
-        println!("Warning: Your terminal does not fully support truecolor");
-    }
     let cli = Cli::parse();
+    init(Some(&cli));
 
     if cli.theme_list {
         if cli.dark {
@@ -300,14 +311,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{:#?}", theme);
         }
         if !cli.show && !cli.show_toml && !cli.show_fmt {
-            if 
-            if let Err(e) = apply_theme_to_nvim(&mut theme) {
-                is_error = true;
-                eprintln!("{}", e);
+            if get_nvim_config_path().exists() {
+                if let Err(e) = apply_theme_to_nvim(&mut theme) {
+                    is_error = true;
+                    eprintln!("{}", e);
+                }
             }
-            if let Err(e) = apply_theme_to_alacritty(&mut theme) {
-                is_error = true;
-                eprintln!("{}", e);
+            if get_alacritty_config_path().exists() {
+                if let Err(e) = apply_theme_to_alacritty(&mut theme) {
+                    is_error = true;
+                    eprintln!("{}", e);
+                }
             }
         }
     }

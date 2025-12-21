@@ -2,7 +2,7 @@ use crate::models;
 
 pub fn nvim(theme: &mut models::Theme) -> String {
     let is_light = theme.is_light();
-    let c = theme.get_colors();
+    let c = theme.get_or_insert_colors();
     const HEAD: &str = r###"
 local function themeSyncExe()
     vim.cmd("highlight clear")
