@@ -4,11 +4,21 @@ mod models;
 mod templ;
 use clap::Parser;
 use rand::seq::IndexedRandom;
-use std::{fmt::Write, io::BufRead};
+use std::{
+    fmt::Write,
+    io::{BufRead, Write as IoWrite}, process::exit,
+};
 use strsim::levenshtein;
 
 const NVIM_CONFIG_FILE_PATH: &str = ".config/nvim/init.lua";
 const ALACRITTY_CONFIG_FILE_PATH: &str = ".config/alacritty/alacritty.toml";
+
+fn supports_truecolor() -> bool {
+    matches!(
+        std::env::var("COLORTERM").as_deref(),
+        Ok("truecolor") | Ok("24bit")
+    )
+}
 
 #[inline(always)]
 fn home_path_join(p: impl AsRef<std::path::Path>) -> std::path::PathBuf {
@@ -87,7 +97,7 @@ fn save_alacritty_config(
 fn apply_theme_to_alacritty(theme: &mut models::Theme) -> Result<(), Box<dyn std::error::Error>> {
     let path = home_path_join(ALACRITTY_CONFIG_FILE_PATH);
     let mut config = load_alacritty_config(&path)?;
-    config.replace_colors_from_theme(theme.get_colors());
+    config.replace_colors_from_theme(theme.get_or_insert_colors());
     save_alacritty_config(path, &config)?;
     Ok(())
 }
@@ -191,9 +201,24 @@ struct Cli {
     /// List available Nerd Fonts
     #[arg(long)]
     font_list: bool,
+
+    /// Display the theme's color palette in the terminal
+    #[arg(short, long)]
+    show: bool,
+
+    /// Show theme configuration in TOML format
+    #[arg(long)]
+    show_toml: bool,
+
+    /// Show full debug information of the theme
+    #[arg(long)]
+    show_fmt: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if !supports_truecolor() {
+        println!("Warning: Your terminal does not fully support truecolor");
+    }
     let cli = Cli::parse();
 
     if cli.theme_list {
@@ -231,13 +256,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         None
     };
     if let Some(mut theme) = theme {
+        println!("{}", theme.name.clone().unwrap_or("unknown".into()));
         theme.prepare()?;
         // theme.validation()?;
-
-        apply_theme_to_nvim(&mut theme)?;
-        apply_theme_to_alacritty(&mut theme)?;
-
-        println!("{}", theme.name.clone().unwrap_or_default());
+        if cli.show {
+            let base_colors = theme.get_or_insert_colors()
+                .base
+                .to_vec_colors()?;
+            color::print_palette(&base_colors);
+            toml::to_string_pretty(&theme).unwrap();
+        }
+        if cli.show_toml {
+            println!("{}", toml::to_string_pretty(&theme)?);
+        }
+        if cli.show_fmt {
+            println!("{:#?}", theme);
+        }
+        if !cli.show && !cli.show_toml && !cli.show_fmt {
+            let mut is_error = false;
+            if let Err(e) = apply_theme_to_nvim(&mut theme) {
+                is_error = true;
+                eprintln!("{}", e);
+            }
+            if let Err(e) = apply_theme_to_alacritty(&mut theme) {
+                is_error = true;
+                eprintln!("{}", e);
+            }
+            if is_error {
+                exit(1);
+            }
+        }
     }
 
     Ok(())

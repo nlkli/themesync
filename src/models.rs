@@ -141,22 +141,36 @@ impl TermColors {
     }
 
     pub fn validation(&self) -> Result<(), String> {
-        let _ = Color::from_hex_str(&self.black)?;
-        let _ = Color::from_hex_str(&self.red)?;
-        let _ = Color::from_hex_str(&self.green)?;
-        let _ = Color::from_hex_str(&self.yellow)?;
-        let _ = Color::from_hex_str(&self.blue)?;
-        let _ = Color::from_hex_str(&self.magenta)?;
-        let _ = Color::from_hex_str(&self.cyan)?;
-        let _ = Color::from_hex_str(&self.white)?;
-        if let Some(c) = self.orange.as_ref() {
-            let _ = Color::from_hex_str(c)?;
-        }
-        if let Some(c) = self.pink.as_ref() {
-            let _ = Color::from_hex_str(c)?;
+        for c in self.as_arr() {
+            if !c.is_empty() {
+                let _ = Color::from_hex_str(c)?;
+            }
         }
 
         Ok(())
+    }
+
+    pub fn as_arr(&self) -> [&str; 10] {
+        [
+            self.black.as_str(),
+            self.red.as_str(),
+            self.green.as_str(),
+            self.yellow.as_str(),
+            self.blue.as_str(),
+            self.magenta.as_str(),
+            self.cyan.as_str(),
+            self.white.as_str(),
+            self.orange.as_ref().map_or("", |s| s.as_str()),
+            self.pink.as_ref().map_or("", |s| s.as_str()),
+        ]
+    }
+
+    pub fn to_vec_colors(&self) -> Result<Vec<Color>, String> {
+        let mut colors = Vec::with_capacity(10);
+        for c in self.as_arr() {
+            colors.push(Color::from_hex_str(c)?);
+        }
+        Ok(colors)
     }
 }
 
@@ -373,7 +387,7 @@ pub struct Theme {
 }
 
 impl Theme {
-    pub fn get_colors(&mut self) -> &ThemeColors {
+    pub fn get_or_insert_colors(&mut self) -> &ThemeColors {
         self.colors.get_or_insert(Default::default())
     }
 
@@ -571,6 +585,49 @@ impl DiffColors {
 
         Ok(())
     }
+}
+
+#[macro_export]
+macro_rules! term_colors {
+    (
+        $black:expr, $red:expr, $green:expr, $yellow:expr,
+        $blue:expr, $magenta:expr, $cyan:expr, $white:expr,
+        $orange:expr, $pink:expr $(,)?
+    ) => {{
+        TermColors {
+            black: $black.into(),
+            red: $red.into(),
+            green: $green.into(),
+            yellow: $yellow.into(),
+            blue: $blue.into(),
+            magenta: $magenta.into(),
+            cyan: $cyan.into(),
+            white: $white.into(),
+            orange: if $orange.is_empty() { None } else { Some($orange.into()) },
+            pink: if $pink.is_empty() { None } else { Some($pink.into()) },
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! bg_colors {
+    ( [ $($color:expr),* $(,)? ] ) => {
+        Background::Colors([ $( $color.into() ),* ])
+    };
+}
+
+#[macro_export]
+macro_rules! fg_colors {
+    ( [ $($color:expr),* $(,)? ] ) => {
+        Foreground::Colors([ $( $color.into() ),* ])
+    };
+}
+
+#[macro_export]
+macro_rules! sel_colors {
+    ( [ $($color:expr),* $(,)? ] ) => {
+        Selection::Colors([ $( $color.into() ),* ])
+    };
 }
 
 pub mod alacritty {

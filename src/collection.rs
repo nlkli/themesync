@@ -1,4 +1,5 @@
 use crate::models::*;
+use crate::{bg_colors, fg_colors, sel_colors, term_colors};
 use rand::seq::IndexedRandom;
 use strsim::levenshtein;
 
@@ -169,45 +170,6 @@ pub fn search(query: &str) -> Theme {
     } else {
         by_name(light)
     }
-}
-
-macro_rules! term_colors {
-    (
-        $black:expr, $red:expr, $green:expr, $yellow:expr,
-        $blue:expr, $magenta:expr, $cyan:expr, $white:expr,
-        $orange:expr, $pink:expr $(,)?
-    ) => {{
-        TermColors {
-            black: $black.into(),
-            red: $red.into(),
-            green: $green.into(),
-            yellow: $yellow.into(),
-            blue: $blue.into(),
-            magenta: $magenta.into(),
-            cyan: $cyan.into(),
-            white: $white.into(),
-            orange: if $orange.is_empty() { None } else { Some($orange.into()) },
-            pink: if $pink.is_empty() { None } else { Some($pink.into()) },
-        }
-    }};
-}
-
-macro_rules! bg_colors {
-    ( [ $($color:expr),* $(,)? ] ) => {
-        Background::Colors([ $( $color.into() ),* ])
-    };
-}
-
-macro_rules! fg_colors {
-    ( [ $($color:expr),* $(,)? ] ) => {
-        Foreground::Colors([ $( $color.into() ),* ])
-    };
-}
-
-macro_rules! sel_colors {
-    ( [ $($color:expr),* $(,)? ] ) => {
-        Selection::Colors([ $( $color.into() ),* ])
-    };
 }
 
 pub fn by_name(name: &str) -> Theme {

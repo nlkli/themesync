@@ -1,3 +1,26 @@
+use std::io::Write;
+
+pub fn print_palette(colors: &[Color]) {
+    print!("\x1b[48;2;90;90;90m");
+    for _ in colors {
+        print!("    ");
+    }
+    println!("\x1b[0m");
+    for _ in 0..2 {
+        for c in colors {
+            let (r, g, b, _) = c.to_rgba();
+            print!("\x1b[48;2;{};{};{}m    \x1b[0m", r, g, b);
+        }
+        println!();
+    }
+    print!("\x1b[48;2;90;90;90m");
+    for _ in colors {
+        print!("    ");
+    }
+    println!("\x1b[0m");
+
+    std::io::stdout().flush().unwrap();
+}
 
 fn clamp(v: f32, min: f32, max: f32) -> f32 {
     v.max(min).min(max)
@@ -94,14 +117,14 @@ impl Color {
     //     Self::new(f(0.0), f(8.0), f(4.0), a)
     // }
 
-    // pub fn to_rgba(&self) -> (u8, u8, u8, f32) {
-    //     (
-    //         round_u8(self.red * 255.0),
-    //         round_u8(self.green * 255.0),
-    //         round_u8(self.blue * 255.0),
-    //         self.alpha,
-    //     )
-    // }
+    pub fn to_rgba(&self) -> (u8, u8, u8, f32) {
+        (
+            round_u8(self.red * 255.0),
+            round_u8(self.green * 255.0),
+            round_u8(self.blue * 255.0),
+            self.alpha,
+        )
+    }
 
     pub fn to_hex(&self, with_alpha: bool) -> u32 {
         let r = round_u8(self.red * 255.0) as u32;
