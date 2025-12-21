@@ -19,20 +19,53 @@ tvibe — простая утилита для изменения и синхр�
 ## Использование
 
 ```text
-theme changing utility
+Change your terminal theme and font easily
+
+Examples:
+    tvibe -t <query> -f <query> # set specific theme and font
+    tvibe -rdF                  # set rand dark theme and rand font
 
 Usage: tvibe [OPTIONS]
 
 Options:
-  -r, --rand           Set random theme
-  -l, --light-rand     Set random light theme
-  -d, --dark-rand      Set random dark theme
-  -q, --query <QUERY>  Search and apply theme
-      --list           List of available themes
-  -f, --font <FONT>    Change alacritty nerd font family
-      --font-list      List of nerd font family
-  -h, --help           Print help
-  -V, --version        Print version
+  -t, --theme <THEME>
+          Apply theme by name (supports fuzzy matching)
+
+  -r, --rand
+          Apply a random theme
+
+  -d, --dark
+          When used with --rand or --theme-list, filters to dark themes
+
+  -l, --light
+          Filter to light themes
+
+      --theme-list
+          List available Nerd Fonts
+
+  -f, --font <FONT>
+          Set font family by name (supports fuzzy matching)
+
+  -F, --font-rand
+          Pick a random Nerd Font
+
+      --font-list
+          List available Nerd Fonts
+
+  -s, --show
+          Display the theme's color palette in the terminal without applying it
+
+      --show-toml
+          TOML format
+
+      --show-fmt
+          Rust fmt format
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
 ```
 
 tvibe содержит встроенный набор готовых тем.
