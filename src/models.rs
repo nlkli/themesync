@@ -382,7 +382,8 @@ pub struct Theme {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub colors: Option<ThemeColors>,
 
-    #[serde(skip_serializing_if = "Option::is_none", default)]
+    // not necessary after preparation
+    #[serde(skip_serializing, default)]
     pub config: Option<ThemeConfig>,
 }
 
