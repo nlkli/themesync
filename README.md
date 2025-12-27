@@ -1,6 +1,6 @@
 # tvibe
 
-* Проект подностью переписан. https://github.com/nlkli/recol *
+**Проект полностью переписан. https://github.com/nlkli/recol**
 
 tvibe — простая утилита для изменения и синхронизации цветовой темы Neovim и Alacritty.
 
